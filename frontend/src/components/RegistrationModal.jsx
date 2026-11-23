@@ -150,7 +150,7 @@ const RegistrationModal = ({ event, onClose, onSubmit, submitting }) => {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary-500">
-              {step === 1 ? "Register for" : "Secure checkout for"}
+              {step === 1 ? "Register for" : "Demo checkout for"}
             </p>
             <h2 className="text-xl font-bold text-gray-900">{event.eventName}</h2>
           </div>
@@ -335,7 +335,7 @@ const RegistrationModal = ({ event, onClose, onSubmit, submitting }) => {
             </div>
 
             <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
-              🔒 Demo checkout — no real charge is made and card details are never stored.
+              Use test card 4242 4242 4242 4242, a future expiry, and any three-digit test CVV. This is a simulated payment.
             </p>
 
             <div className="flex gap-3 pt-1">

@@ -81,11 +81,12 @@ const EventDetailsPage = () => {
   const handleConfirmRegister = async (formValues) => {
     setBusy(true);
     try {
-      await api.post(`/events/${id}/registrations`, formValues);
+      const { data } = await api.post(`/events/${id}/registrations`, formValues);
       toast?.success("You're registered! Your digital pass is ready.");
       setShowRegisterModal(false);
       fetchEvent();
-      fetchMyRegistration();
+      setMyRegistration({ ...data.registration, event });
+      setShowPassModal(true);
     } catch (err) {
       toast?.error(err.response?.data?.message || "Registration failed");
     } finally {
@@ -169,7 +170,7 @@ const EventDetailsPage = () => {
           {!isAdmin && !isRegistered && (
             <button
               disabled={event.availableSeats <= 0 || busy || event.status === "Completed" || event.status === "Cancelled"}
-              onClick={() => (user ? setShowRegisterModal(true) : toast?.info("Please log in to register"))}
+              onClick={() => (user ? setShowRegisterModal(true) : navigate("/login", { state: { from: "/events/" + id } }))}
               className="btn-gradient rounded-lg px-5 py-2.5 text-sm"
             >
               {event.availableSeats <= 0

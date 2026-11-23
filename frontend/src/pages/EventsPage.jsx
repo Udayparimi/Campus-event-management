@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -9,6 +10,7 @@ import Spinner from "../components/Spinner.jsx";
 
 const EventsPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const toast = useToast();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ const EventsPage = () => {
     try {
       const { data } = await api.get("/myregistrations");
       const activeIds = data.registrations
-        .filter((r) => r.status === "Registered" && r.event)
+        .filter((r) => r.status !== "Cancelled" && r.event)
         .map((r) => r.event._id);
       setMyRegisteredIds(activeIds);
     } catch (err) {
@@ -71,7 +73,7 @@ const EventsPage = () => {
 
   const openRegisterModal = (event) => {
     if (!user) {
-      toast?.info("Please log in to register for events");
+      navigate("/login", { state: { from: "/events/" + event._id } });
       return;
     }
     setModalEvent(event);
@@ -85,7 +87,7 @@ const EventsPage = () => {
       setMyRegisteredIds((prev) => [...prev, modalEvent._id]);
       toast?.success(`You're registered for ${modalEvent.eventName}! Find your pass under "My Registrations".`);
       setModalEvent(null);
-      fetchEvents();
+      navigate("/myregistration");
     } catch (err) {
       toast?.error(err.response?.data?.message || "Registration failed");
     } finally {
@@ -109,40 +111,25 @@ const EventsPage = () => {
     const ongoing = events.filter((e) => e.status === "Ongoing").length;
     const seats = events.reduce((sum, e) => sum + (e.availableSeats || 0), 0);
     return [
-      { label: "Live Events", value: events.length, icon: "📋" },
-      { label: "Upcoming", value: upcoming, icon: "🗓️" },
-      { label: "Happening Now", value: ongoing, icon: "🔴" },
-      { label: "Open Seats", value: seats, icon: "🎟️" },
+      { label: "Events shown", value: events.length },
+      { label: "Upcoming", value: upcoming },
+      { label: "Happening Now", value: ongoing },
+      { label: "Open Seats", value: seats },
     ];
   }, [events]);
 
   return (
     <div className="space-y-8">
-      {/* Hero banner */}
-      <div className="relative overflow-hidden bg-hero-gradient bg-[length:200%_200%] animate-gradient-x text-white">
-        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 animate-float-slow" />
-        <div className="absolute top-10 right-10 w-24 h-24 rounded-full bg-white/10 animate-float" />
-        <div className="max-w-6xl mx-auto px-4 py-14 relative">
-          <p className="text-sm uppercase tracking-[0.2em] text-white/80 font-semibold">Campus Events</p>
-          <h1 className="text-3xl sm:text-4xl font-extrabold mt-2 max-w-xl">
-            Discover, register, and get your instant digital pass
-          </h1>
-          <p className="text-white/85 mt-3 max-w-lg">
-            Browse workshops, hackathons, seminars, and more — reserve your seat in a couple of clicks and carry
-            your QR pass straight to the door.
-          </p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 max-w-2xl">
-            {stats.map((s) => (
-              <div key={s.label} className="glass-panel !bg-white/10 !border-white/20 rounded-xl px-4 py-3">
-                <div className="text-xl">{s.icon}</div>
-                <div className="text-2xl font-bold mt-1">{s.value}</div>
-                <div className="text-xs text-white/80">{s.label}</div>
-              </div>
-            ))}
-          </div>
+      <header className="catalog-poster">
+        <div className="catalog-title">
+          <h1>Find your next <em>campus event</em></h1>
+          <p>Workshops, talks and meetups. Reserve your seat and bring your digital pass.</p>
         </div>
-      </div>
+        <img src="/campus-poster.jpg" alt="" />
+      </header>
+      <dl className="catalog-totals">
+        {stats.map(s => <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>)}
+      </dl>
 
       <div className="max-w-6xl mx-auto px-4 pb-10 space-y-5">
         <SearchFilterBar filters={filters} onChange={setFilters} />

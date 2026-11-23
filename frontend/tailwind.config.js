@@ -7,23 +7,23 @@ export default {
       },
       colors: {
         primary: {
-          50: "#eef4ff",
-          100: "#dbe6fe",
-          200: "#bdd0fd",
-          300: "#93b0fb",
-          400: "#6186f6",
-          500: "#3b5fe0",
-          600: "#2f4dc4",
-          700: "#263ea3",
-          800: "#233482",
-          900: "#212e68",
+          50: "#f2edff",
+          100: "#ded7f7",
+          200: "#acd8ce",
+          300: "#83c3b4",
+          400: "#4da593",
+          500: "#5741bd",
+          600: "#3b29a7",
+          700: "#302489",
+          800: "#25215c",
+          900: "#212044",
         },
         accent: {
-          50: "#fdf2f8",
-          100: "#fce7f3",
-          400: "#f472b6",
-          500: "#ec4899",
-          600: "#db2777",
+          50: "#fff7ea",
+          100: "#ffead0",
+          400: "#efbc77",
+          500: "#ad6b29",
+          600: "#905326",
         },
         glow: {
           400: "#22d3ee",
@@ -31,13 +31,13 @@ export default {
         },
       },
       backgroundImage: {
-        "hero-gradient": "linear-gradient(135deg, #263ea3 0%, #3b5fe0 45%, #ec4899 100%)",
-        "brand-gradient": "linear-gradient(135deg, #3b5fe0 0%, #6186f6 50%, #22d3ee 100%)",
-        "card-glow": "radial-gradient(circle at top left, rgba(59,95,224,0.15), transparent 55%)",
+        "hero-gradient": "linear-gradient(100deg, #26223e, #25213b)",
+        "brand-gradient": "linear-gradient(100deg, #4931aa, #6050ce)",
+        "card-glow": "radial-gradient(circle at top left, rgba(21,83,70,0.15), transparent 55%)",
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(59,95,224,0.08), 0 8px 30px -8px rgba(59,95,224,0.35)",
-        "glow-pink": "0 8px 30px -8px rgba(236,72,153,0.45)",
+        glow: "0 0 0 1px rgba(21,83,70,0.08), 0 8px 30px -8px rgba(21,83,70,0.35)",
+        "glow-pink": "0 8px 30px -8px rgba(18,77,68,0.45)",
       },
       keyframes: {
         float: {
@@ -57,8 +57,8 @@ export default {
           "100%": { opacity: "1", transform: "scale(1)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 0 0 rgba(59,95,224,0.4)" },
-          "50%": { boxShadow: "0 0 0 8px rgba(59,95,224,0)" },
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(21,83,70,0.4)" },
+          "50%": { boxShadow: "0 0 0 8px rgba(21,83,70,0)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-400px 0" },

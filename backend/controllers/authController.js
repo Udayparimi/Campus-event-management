@@ -7,7 +7,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return res.status(409).json({ success: false, message: "Email is already registered" });
+    return res.status(409).json({ success: false, message: "Email is already registered", errors: { email: "This email is already registered. Sign in to continue." } });
   }
 
   // Admin accounts are gated behind an invite code known only to the
@@ -20,7 +20,8 @@ export const registerUser = asyncHandler(async (req, res) => {
     if (!expectedCode || !suppliedCode || suppliedCode !== expectedCode) {
       return res.status(403).json({
         success: false,
-        message: "That admin invite code isn't valid. Ask your events committee for the current code.",
+        message: "Invalid admin invite code",
+        errors: { adminCode: "Check the invite code with your events committee." },
       });
     }
     allowedRole = "admin";

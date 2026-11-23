@@ -1,4 +1,4 @@
-import Registration from "../models/Registration.js";
+import Registration, { SEAT_OCCUPYING_STATUSES } from "../models/Registration.js";
 import Event from "../models/Event.js";
 import { asyncHandler } from "../middleware/errorHandler.js";
 import generateTicketCode from "../utils/generateTicketCode.js";
@@ -77,11 +77,14 @@ export const registerForEvent = asyncHandler(async (req, res) => {
   }
 
   const existing = await Registration.findOne({ event: eventId, user: req.user._id });
-  if (existing && existing.status === "Registered") {
+  if (existing && SEAT_OCCUPYING_STATUSES.includes(existing.status)) {
     return res.status(409).json({ success: false, message: "You are already registered for this event" });
   }
 
-  const registeredCount = await Registration.countDocuments({ event: eventId, status: "Registered" });
+  const registeredCount = await Registration.countDocuments({
+    event: eventId,
+    status: { $in: SEAT_OCCUPYING_STATUSES },
+  });
   if (registeredCount >= event.maxParticipants) {
     return res.status(400).json({ success: false, message: "No seats available for this event" });
   }
@@ -137,13 +140,14 @@ export const registerForEvent = asyncHandler(async (req, res) => {
 export const cancelRegistration = asyncHandler(async (req, res) => {
   const { eventId } = req.params;
 
-  const registration = await Registration.findOne({ event: eventId, user: req.user._id });
-  if (!registration || registration.status !== "Registered") {
+  const registration = await Registration.findOneAndUpdate(
+    { event: eventId, user: req.user._id, status: "Registered" },
+    { status: "Cancelled" },
+    { new: true }
+  );
+  if (!registration) {
     return res.status(404).json({ success: false, message: "Active registration not found" });
   }
-
-  registration.status = "Cancelled";
-  await registration.save();
 
   res.status(200).json({ success: true, message: "Registration cancelled", registration });
 });
@@ -167,18 +171,8 @@ export const getEventRegistrations = asyncHandler(async (req, res) => {
 });
 
 export const markAttendance = asyncHandler(async (req, res) => {
-  const { registrationId } = req.params;
-
-  const registration = await Registration.findById(registrationId);
-  if (!registration) {
-    return res.status(404).json({ success: false, message: "Registration not found" });
-  }
-
-  registration.status = "Attended";
-  registration.checkedInAt = new Date();
-  await registration.save();
-
-  res.status(200).json({ success: true, message: "Attendance marked", registration });
+  const { eventId, registrationId } = req.params;
+  return checkIn({ _id: registrationId, event: eventId }, res, false);
 });
 
 // Admin-facing: look up a student's digital pass by its ticket code (e.g.
@@ -200,27 +194,23 @@ export const verifyTicket = asyncHandler(async (req, res) => {
 
 // Admin-facing: check a student in at the door using their ticket code.
 export const checkInByTicket = asyncHandler(async (req, res) => {
-  const { ticketCode } = req.params;
+  return checkIn({ ticketCode: req.params.ticketCode }, res, true);
+});
 
-  const registration = await Registration.findOne({ ticketCode })
-    .populate("event")
-    .populate("user", "name email department");
+async function checkIn(filter, res, includeDetails) {
+  const query = Registration.findOneAndUpdate(
+    { ...filter, status: "Registered" },
+    { status: "Attended", checkedInAt: new Date() },
+    { new: true }
+  );
+  if (includeDetails) query.populate("event").populate("user", "name email department");
+  const registration = await query;
+  if (registration) return res.json({ success: true, message: "Checked in successfully", registration });
 
-  if (!registration) {
-    return res.status(404).json({ success: false, message: "No pass found for this ticket code" });
-  }
-
-  if (registration.status === "Cancelled") {
+  const previous = await Registration.findOne(filter).select("status");
+  if (!previous) return res.status(404).json({ success: false, message: "Registration not found" });
+  if (previous.status === "Cancelled") {
     return res.status(400).json({ success: false, message: "This registration was cancelled" });
   }
-
-  if (registration.status === "Attended") {
-    return res.status(409).json({ success: false, message: "This pass has already been checked in", registration });
-  }
-
-  registration.status = "Attended";
-  registration.checkedInAt = new Date();
-  await registration.save();
-
-  res.status(200).json({ success: true, message: "Checked in successfully", registration });
-});
+  return res.status(409).json({ success: false, message: "This pass has already been checked in" });
+}

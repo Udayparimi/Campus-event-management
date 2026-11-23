@@ -10,7 +10,7 @@ import { validateRegistrationInput } from "../middleware/validate.js";
 
 const router = express.Router({ mergeParams: true });
 
-router.post("/", protect, validateRegistrationInput, registerForEvent);
+router.post("/", protect, authorize("student"), validateRegistrationInput, registerForEvent);
 router.delete("/", protect, cancelRegistration);
 router.get("/", protect, authorize("admin"), getEventRegistrations);
 router.patch("/:registrationId/attendance", protect, authorize("admin"), markAttendance);

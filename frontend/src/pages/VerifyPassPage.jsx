@@ -39,7 +39,7 @@ const VerifyPassPage = () => {
   const handleCheckIn = async () => {
     setCheckingIn(true);
     try {
-      const { data } = await api.patch(`/verify/${code.trim()}/checkin`);
+      const { data } = await api.patch(`/verify/${registration.ticketCode}/checkin`);
       setRegistration(data.registration);
       toast?.success("Student checked in successfully");
     } catch (err) {
@@ -60,11 +60,13 @@ const VerifyPassPage = () => {
         <input
           type="text"
           value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          disabled={loading || checkingIn}
+          aria-label="Ticket code"
+          onChange={(e) => { setCode(e.target.value.toUpperCase()); setRegistration(null); }}
           placeholder="e.g. CE-3F9A2C1D"
           className="input-field font-mono tracking-wide"
         />
-        <button type="submit" disabled={loading} className="btn-gradient rounded-lg px-5 whitespace-nowrap">
+        <button type="submit" disabled={loading || checkingIn || !code.trim()} className="btn-gradient rounded-lg px-5 whitespace-nowrap">
           {loading ? "..." : "Look up"}
         </button>
       </form>

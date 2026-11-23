@@ -8,30 +8,23 @@ const statusStyles = {
   Cancelled: "bg-red-100 text-red-700",
 };
 
-const typeEmoji = {
-  Workshop: "🛠️",
-  Seminar: "🎤",
-  Hackathon: "💻",
-  Conference: "🏛️",
-  Webinar: "🖥️",
-  Competition: "🏆",
-  Other: "✨",
-};
-
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-};
-
 const EventCard = ({ event, user, onRegister, onDelete, isRegistered, registering }) => {
+  const date = new Date(event.eventDate);
   const isAdmin = user?.role === "admin";
   const isFull = event.availableSeats <= 0;
   const isClosed = event.status === "Completed" || event.status === "Cancelled";
   const seatPct = Math.min(100, Math.round((event.registeredCount / event.maxParticipants) * 100) || 0);
 
   return (
-    <div className="group card-surface bg-card-glow p-5 flex flex-col justify-between hover:shadow-glow hover:-translate-y-1">
+    <div className="event-ticket group card-surface p-5 flex flex-col justify-between hover:shadow-glow ">
       <div>
+        <div className="event-ticket-head mb-4 flex items-center gap-3">
+          <time dateTime={event.eventDate} className="grid w-14 shrink-0 place-items-center rounded-xl bg-primary-50 py-2 text-primary-800">
+            <span className="text-xs font-semibold uppercase">{date.toLocaleDateString("en-IN", { month: "short" })}</span>
+            <span className="text-2xl font-bold leading-none">{date.getDate()}</span>
+          </time>
+          <span className="text-sm font-semibold text-primary-700">{event.eventType}</span>
+        </div>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-lg font-bold text-gray-900 group-hover:chip-gradient-text transition-colors">
             {event.eventName}
@@ -46,14 +39,9 @@ const EventCard = ({ event, user, onRegister, onDelete, isRegistered, registerin
           </div>
         </div>
 
-        <p className="text-sm text-primary-600 font-semibold mt-1">
-          {typeEmoji[event.eventType] || "✨"} {event.eventType}
-        </p>
-
         <div className="mt-3 text-sm text-gray-600 space-y-1">
-          <p>🎙️ {event.resourcePerson}</p>
-          <p>📅 {formatDate(event.eventDate)}</p>
-          <p>📍 {event.venue}</p>
+          <p>Hosted by {event.resourcePerson}</p>
+          <p>{event.venue}</p>
         </div>
 
         <div className="mt-3">

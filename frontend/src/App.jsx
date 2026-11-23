@@ -7,8 +7,7 @@ import EventDetailsPage from "./pages/EventDetailsPage.jsx";
 import CreateEventPage from "./pages/CreateEventPage.jsx";
 import EditEventPage from "./pages/EditEventPage.jsx";
 import MyRegistrationsPage from "./pages/MyRegistrationsPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
-import RegisterPage from "./pages/RegisterPage.jsx";
+import AuthPage from "./pages/AuthPage.jsx";
 import VerifyPassPage from "./pages/VerifyPassPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
@@ -21,8 +20,8 @@ const App = () => {
           <Route path="/" element={<Navigate to="/events" replace />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/:id" element={<EventDetailsPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<AuthPage key="login" />} />
+          <Route path="/register" element={<AuthPage key="signup" signup />} />
 
           <Route
             path="/create-event"

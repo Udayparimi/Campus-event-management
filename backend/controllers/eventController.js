@@ -1,11 +1,11 @@
 import Event from "../models/Event.js";
-import Registration from "../models/Registration.js";
+import Registration, { SEAT_OCCUPYING_STATUSES } from "../models/Registration.js";
 import { asyncHandler } from "../middleware/errorHandler.js";
 
 const withAvailability = async (events) => {
   const eventIds = events.map((e) => e._id);
   const counts = await Registration.aggregate([
-    { $match: { event: { $in: eventIds }, status: "Registered" } },
+    { $match: { event: { $in: eventIds }, status: { $in: SEAT_OCCUPYING_STATUSES } } },
     { $group: { _id: "$event", count: { $sum: 1 } } },
   ]);
   const countMap = {};
@@ -23,16 +23,24 @@ const withAvailability = async (events) => {
 };
 
 export const getEvents = asyncHandler(async (req, res) => {
-  const { search, eventType, status, sortBy, order, page = 1, limit = 9 } = req.query;
+  const { search, eventType, status, sortBy, order = "asc", page = 1, limit = 9 } = req.query;
 
+  const textFilters = [search, eventType, status];
+  const sortFields = ["eventDate", "eventName", "maxParticipants"];
+  if (textFilters.some(value => value !== undefined && (typeof value !== "string" || value.length > 120)) ||
+      (sortBy && !sortFields.includes(sortBy)) || !["asc", "desc"].includes(order) ||
+      !/^\d{1,6}$/.test(page) || !/^\d{1,3}$/.test(limit) || Number(page) < 1 || Number(limit) < 1 || Number(limit) > 100) {
+    return res.status(400).json({ success: false, message: "Invalid event filters or pagination" });
+  }
   const query = {};
 
   if (search) {
+    const literalSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     query.$or = [
-      { eventName: { $regex: search, $options: "i" } },
-      { venue: { $regex: search, $options: "i" } },
-      { resourcePerson: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
+      { eventName: { $regex: literalSearch, $options: "i" } },
+      { venue: { $regex: literalSearch, $options: "i" } },
+      { resourcePerson: { $regex: literalSearch, $options: "i" } },
+      { description: { $regex: literalSearch, $options: "i" } },
     ];
   }
 
@@ -48,7 +56,7 @@ export const getEvents = asyncHandler(async (req, res) => {
   const skip = (pageNum - 1) * limitNum;
 
   const [events, total] = await Promise.all([
-    Event.find(query).sort(sortOptions).skip(skip).limit(limitNum).populate("createdBy", "name email"),
+    Event.find(query).sort(sortOptions).skip(skip).limit(limitNum).populate("createdBy", "name"),
     Event.countDocuments(query),
   ]);
 
@@ -65,7 +73,7 @@ export const getEvents = asyncHandler(async (req, res) => {
 });
 
 export const getEventById = asyncHandler(async (req, res) => {
-  const event = await Event.findById(req.params.id).populate("createdBy", "name email");
+  const event = await Event.findById(req.params.id).populate("createdBy", "name");
   if (!event) {
     return res.status(404).json({ success: false, message: "Event not found" });
   }

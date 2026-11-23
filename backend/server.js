@@ -9,12 +9,24 @@ import verifyRoutes from "./routes/verifyRoutes.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
-connectDB();
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "change_this_secret_key") {
+  throw new Error("Set JWT_SECRET to a private random signing key before starting the API.");
+}
+if (process.env.ADMIN_INVITE_CODE === "change_this_admin_code") {
+  throw new Error("Replace the example admin invite code or leave it blank to disable admin signup.");
+}
+await connectDB();
 
 const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
-app.use(express.json());
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("Cache-Control", "no-store");
+  next();
+});
+app.use(express.json({ limit: "32kb" }));
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "API is running" });

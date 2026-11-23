@@ -1,31 +1,19 @@
+import { authErrors } from "../../shared/authValidation.mjs";
 const isEmpty = (val) => val === undefined || val === null || String(val).trim() === "";
 
-export const validateRegisterInput = (req, res, next) => {
-  const { name, email, password } = req.body;
-  const errors = {};
+function validateAuth(signup) {
+  return (req, res, next) => {
+    const errors = authErrors(req.body ?? {}, signup);
+    if (Object.keys(errors).length) {
+      return res.status(400).json({ success: false, message: "Check the highlighted fields.", errors });
+    }
+    req.body.email = req.body.email.trim().toLowerCase();
+    next();
+  };
+}
 
-  if (isEmpty(name)) errors.name = "Name is required";
-  if (isEmpty(email)) errors.email = "Email is required";
-  else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = "Email is invalid";
-  if (isEmpty(password)) errors.password = "Password is required";
-  else if (password.length < 6) errors.password = "Password must be at least 6 characters";
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ success: false, message: "Validation failed", errors });
-  }
-  next();
-};
-
-export const validateLoginInput = (req, res, next) => {
-  const { email, password } = req.body;
-  const errors = {};
-  if (isEmpty(email)) errors.email = "Email is required";
-  if (isEmpty(password)) errors.password = "Password is required";
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ success: false, message: "Validation failed", errors });
-  }
-  next();
-};
+export const validateRegisterInput = validateAuth(true);
+export const validateLoginInput = validateAuth(false);
 
 export const validateEventInput = (req, res, next) => {
   const { eventName, eventType, resourcePerson, eventDate, venue, maxParticipants, description, isPaid, price } =

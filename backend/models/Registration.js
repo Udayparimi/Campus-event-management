@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export const SEAT_OCCUPYING_STATUSES = ["Registered", "Attended"];
+
 const registrationSchema = new mongoose.Schema(
   {
     event: {
